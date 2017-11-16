@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Filesystem\Filesystem; //bwat mindahin gambar  copy dll  :v
 use App\Http\Requests\StudentRequest;
+use Intervertion\image\ImageManager; //memanipulasi image
 use App\Student;
 
 class StudentController extends Controller
 {
     private  $student;
 
-    public function __construct(Student $student)
+    private $filesystem;
+    private $imageManager;
+
+    public function __construct(Student $student, Filesystem $filesystem, ImageManager $imageManager)
     {
         $this->student = $student;
+        $this->filesystem = $filesystem;
+        $this->fileManager = $imageManager;
     }
 
     public function index()
@@ -83,7 +90,8 @@ class StudentController extends Controller
         $keyword = $request->input('keyword');
 
         $students = $this->student->where('name', 'like', "%$keyword%") // pake kutip dua biar bisa baca pakai variable
-            ->orderBy('id', 'DESC')->get();
+            ->orderBy('id', 'DESC')->paginate(10);
+        $students->appends(['keyword' => $keyword]); //bwat  nargeting pag  ke hal 2
 
         return view('student.search', compact('students'));
         // dd($keyword);

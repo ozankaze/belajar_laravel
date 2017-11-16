@@ -46,4 +46,5 @@
             @endforeach
         </tbody>
     </table>
+    {{ $students->render() }}
 @stop
