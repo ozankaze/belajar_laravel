@@ -25,4 +25,8 @@ class StudentTableSeeder extends Seeder
     }
 
     //faker itu ada bawaan  
+
+
+    
+    //bwat meminize bwat tablenya
 }
