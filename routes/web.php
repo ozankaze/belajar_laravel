@@ -16,8 +16,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/login', 'LoginController@index'); //@index nargetin ke  file login controller
-Route::get('/student', 'StudentController@index');
+Route::get('/login', ['uses' => 'AuthController@login', 'as' => 'auth.login']); //@index nargetin ke  file login controller
+Route::post('/login', ['uses' => 'AuthController@authenticate', 'as' =>'auth.auth']);
+
+Route::get('/student', 'StudentController@index')->middleware('auth');
 Route::get('/student/search', ['as' => 'student.search', 'uses' => 'StudentController@search']);
 Route::get('/student/create', ['uses' => 'StudentController@create', 'as' => 'student.create']);
 Route::post('/student/create', ['uses' => 'StudentController@store', 'as' => 'student.store']);

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Filesystem\Filesystem; //bwat mindahin gambar  copy dll  :v
 use App\Http\Requests\StudentRequest;
-use Intervertion\image\ImageManager; //memanipulasi image
+use Intervention\Image\ImageManager; //memanipulasi image
 use App\Student;
 
 class StudentController extends Controller
@@ -19,12 +19,12 @@ class StudentController extends Controller
     {
         $this->student = $student;
         $this->filesystem = $filesystem;
-        $this->fileManager = $imageManager;
+        $this->imageManager = $imageManager;
     }
 
     public function index()
     {
-        $students = $this->student->paginate(10); //n
+        $students = $this->student->orderBy('id', 'DESC')->paginate(10); //n
 
         return view('student.index', compact('students'));
     }
@@ -36,13 +36,16 @@ class StudentController extends Controller
     }
 
     public function store(StudentRequest $request)
-    {
-        $this->student->create([
-            'name' => $request->input('name'),
-            'address' => $request->input('address'),
-            'age' => $request->input('age'),
-            'email' => $request->input('email')
-        ]);
+    {   
+        // dappetin data inputan kecuali photo
+        $student = $request->except("photo");
+        //cek  jika mengupload photo
+        if ($request->hasFile('photo')) {
+            // dd("ngupload Photo");
+            $student['photo'] = $this->generatePhoto($request->file('photo'), $request->except('photo'));
+            // dd($student);
+        }
+        $this->student->create($student);
 
         session()->flash('success_message', 'Data Tersimpan');
 
@@ -60,10 +63,19 @@ class StudentController extends Controller
 
     public function update($id, StudentRequest $request)
     {
+        $studentForm =  $request->except('photo');
+            if ($request->hasFile('photo')) {
+                // dd("ada photo");
+
+                $studentForm['photo'] = $this->generatePhoto($request->file('photo'), $studentForm);
+            }
+
+            dd("ada photo");
+
         $student = $this->student->find($id);
 
         if($student){
-            $student->update($request->all());
+            $student->update($studentForm);
         }
 
         session()->flash('success_message', 'Data Terupdate');
@@ -97,4 +109,15 @@ class StudentController extends Controller
         // dd($keyword);
     }
     
+    private function generatePhoto($photo, $data) 
+    {
+        $filename = date('YmdHis').'-'.snake_case($data['name']).".".$this->filesystem->extension($photo->getClientOriginalName());
+        $path = public_path("photos/").$filename;
+
+        // dd($path);
+
+        $this->imageManager->make($photo->getRealPath())->save($path);
+
+        return "/photos/".$filename;
+    }
 }
